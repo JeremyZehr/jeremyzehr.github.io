@@ -1,1 +1,145 @@
-Hello World
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Jeremy Zehr</title>
+    <style>
+      body {
+        position: relative;
+        margin: auto;
+        padding: 4em;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 70em;
+      }
+      .external-links {
+        height: 0.5em;
+        line-height: 0.5em;
+        font-size: 0.5em;
+        transform: translateY(-2em);
+      }
+      .external-links a {
+        margin-right: 1em;
+      }
+      .description {
+        min-height: 8em;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+      }
+      .description p {
+        text-align: justify;
+        margin: 1em;
+      }
+      .rows {
+        flex-direction: column;
+      }
+      img {
+        height: 8em;
+        margin: 0em 1em;
+      }
+      a {
+        color: darkslategrey;
+        font-weight: bold;
+        text-decoration: none;
+      }
+      a:hover {
+        color: darkgoldenrod;
+      }
+      .description a[target='_blank']::after {
+        content: '↗';
+        display: inline-block;
+        width: 0.75em;
+        height: 0.75em;
+        line-height: 0.75em;
+        font-size: 0.75em;
+        transform: translateY(-0.5em);
+        border: dotted 1px grey;
+        color: grey;
+      }
+      h2 a {
+        font-variant: small-caps;
+        font-size: 0.75em;
+      }
+      h2 a::after {
+        content: '';
+        display: inline-block;
+        width: 0.75em;
+        height: 0.75em;
+        background-image: url("Icon_pdf_file.png");
+        background-repeat: no-repeat;
+        text-decoration: none;
+      }
+      @media (max-width: 500px), (max-device-width: 500px) {
+        body {
+          padding: 0.5em;
+          font-size: 24px;
+        }
+        .description p {
+          margin: 0.5em;
+        }
+        .description img {
+          display: none;
+        }
+      }
+      footer {
+        position: absolute;
+        bottom: 0.25em;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        font-style: italic;
+        text-align: center;
+        font-size: 0.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Jeremy Zehr</h1>
+    <div class='external-links'>
+      <a href="https://github.com/JeremyZehr" target="_blank">
+        <svg height="1.5em" class="octicon octicon-mark-github mr-2" viewBox="0 0 16 16" version="1.1" width="1.5em" aria-hidden="true" title="GitHub"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+        GitHub
+      </a>
+      <a href="https://www.linkedin.com/in/jeremy-zehr" target="_blank">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" data-supported-dps="24x24" fill="currentColor" class="mercado-match" width="1.5em" height="1.5em" focusable="false">
+          <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
+        </svg>
+        LinkedIn
+      </a>
+      <a href="mailto:jeremy.e.zehr@gmail.com" target="_blank">
+        @
+        Email me
+      </a>
+    </div>
+
+    <div class="description">
+      <p>Hello! My name is <strong>Jeremy Zehr</strong> and I am currently an Application Developer at the <a href="https://www.ldc.upenn.edu/" target="_blank">Linguistic Data Consortium</a> at the <a href="https://www.upenn.edu/" target="_blank">University of Pennsylvania</a>. Prior to that, I was a post-doctoral researcher in semantic and pragmatics in <a href="https://www.florianschwarz.net/" target="_blank">Florian Schwarz</a>'s lab and for the <a href="https://mindcore.sas.upenn.edu/" target="_blank">MindCORE project</a>. I completed my Ph.D. degree in Linguistics titled "Vagueness and Presuppositions" at the <a href="http://www.institutnicod.org" target="_blank">Institut Jean Nicod</a>, under the co-supervision of <a href="http://paulegre.free.fr/" target="_blank">Paul Egré</a> and <a href="https://www.univ-nantes.fr/orin-percus" target="_blank">Orin Percus</a>.</p>
+      <img class='portrait' alt="Portrait of Jeremy Zehr" src='profile_pic.jpg' />
+    </div>
+
+    <h2>PCIbex</h2>
+    <div class="description">
+      <img alt="Logo of PCIbex" src='pcibex-logo.png' />
+      <div class="rows">
+        <p>I am the developeder of <strong>PCIbex</strong>, an open-science solution for desgining and running online experiments. You can learn how to use it <a href="https://doc.pcibex.net/" target="_blank">here</a> and try it for yourself <a href="https://farm.pcibex.net/" target="_blank">here</a> (no account required).</p>
+
+        <p><em>PCIbex</em> stands for PennController for IBEX. IBEX is a former experimental software designed by <a href="https://adrummond.net/" target="_blank">Alex Drummond</a>, and "controllers" were IBEX's modules. PCIbex started off as a simple extension for IBEX before it became an entity of its own. Now, the term <em>PCIbex</em> covers multiple aspect of the solution: its specific mini-language, the JavaScript engine that runs experiments, and the online platform where users can create and host their experiments.</p>
+      </div>
+    </div>
+
+    <h2>Application Developer <a href="adCV.pdf" target="_blank">cv</a></h2>
+    <p>In addition to my work on PCIbex, I have developed several data-collection-related tools and pipelines while working at the Linguistic Data Consortium (LDC). Two projects that I worked on were:
+
+    <ul>
+      <li>In order to automatize the collection and processing of conversation recordings, I created an Android and iOS mobile app in <a href="https://flutter.dev/" target="_blank">Flutter</a> that records audio signal as a WAV file and uploads it to <a href="https://docs.amplify.aws/start/q/integration/flutter/" target="_blank">AWS services</a> where it can be processed.</li>
+      <li>The LDC developed and maintains a <a href="https://lrec2022.lrec-conf.org/media/filer_public/96/47/96478b5d-5959-4301-a88b-f88f52443254/lrec2022_tutorial-ldc_web_based_transcription_tool.pdf" target="_blank">web based transcription tool</a>. I worked on integrating the <a href="https://aws.amazon.com/transcribe/" target="_blank">AWS automatic speech recognition</a> system, and developed a javascript library to design interactives guides for new users.</li>
+    </ul>
+
+    <h2>Research <a href="acCV.pdf" target="_blank">cv</a></h2>
+    <p>I am interested in semantics and pragmatics, with a particular focus on scales and presuppositions and implicatures.</p>
+
+    <p>My most recent project, in collaboration with <a href="https://www.chanchaochai.com/" target="_blank">Nattanun Chanchaochai</a>, documents and investigates the use of the Thai particle <strong>kʰuen</strong> as an operator that can alternatively preserve and reverse the orientation of scalar predicates. While operators found in English are exclusively preserving (eg. "warm <em>up</em>") or reversing (eg. "<em>less</em> warm"), Thai <em>ʔùn <strong>kʰuen</strong></em> (="warm KHUEN") can describe both temperature increases (much like "warm up") and decreases from higher temperatures (~"closer to being warm"). This, to our knowledge, is the first documented instance of a grammaticalized degree operator that demonstrates <em>ambidirectionality</em>. <a href="https://journals.linguisticsociety.org/proceedings/index.php/SALT/article/view/29.63" target="_blank">See the SALT abstract</a></p> 
+
+
+    <footer>Copyrights: the copyrights of the GitHub and LinkedIn SVGs and of the PDF icon belong to their respective owners.</footer>
+  </body>
+</html>
