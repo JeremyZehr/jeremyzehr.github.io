@@ -544,12 +544,12 @@
           const shuffleLetters = ()=>{
             if (gameOver || temporarilyDisableShuffle) return;
             temporarilyDisableShuffle = true;
+            setTimeout(()=>temporarilyDisableShuffle=false, 300);
             const lettersToShuffle = [...lettersDOM.children].filter(c=>c.childElementCount>0).map(c=>c.children[0]);
             if (lettersToShuffle.length<2) return;
             const copyLettersToShuffle = [...lettersToShuffle];
             while (lettersToShuffle.every((e,i)=>e===copyLettersToShuffle[i])) shuffleArray(lettersToShuffle);
             lettersToShuffle.forEach((l,i)=>lettersDOM.children[i].append(l));
-            setTimeout(()=>temporarilyDisableShuffle=false, 50);
           }
           document.querySelector("#shuffleButton").addEventListener("click", shuffleLetters);
           document.querySelector("#shuffleButton").addEventListener("touchstart", shuffleLetters);
@@ -558,6 +558,7 @@
           const submit = ()=>{
             if (gameOver||temporarilyDisableSubmit) return;
             temporarilyDisableSubmit = true;
+            setTimeout(()=>temporarilyDisableSubmit=false, 300);
             const guess = guessDom.innerText.replace(/\n/g,'');
             if (guess.length<LEVELS[level-1].min) message("Words must be at least "+LEVELS[level-1].min+" letters long");
             else {
@@ -573,7 +574,6 @@
               if (lettersInGuess.length>0) lettersDOM.children[i].append(lettersInGuess.shift());
               else lettersDOM.children[i].append(lettersLeft.shift());
             }
-            setTimeout(()=>temporarilyDisableSubmit=false, 50);
           }
           document.querySelector("#submit").addEventListener("click", submit);
           document.querySelector("#submit").addEventListener("touchstart", submit);
