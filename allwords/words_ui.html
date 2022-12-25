@@ -74,17 +74,14 @@
         content: '🔓';
       }
       #guessOrMessage {
-        height: 2em;
+        height: 2.75em;
         min-width: 20em;
         border: solid 1px black;
         text-align: center;
         padding-bottom: 0.5em;
       }
       #message {
-        line-height: 2em;
-      }
-      #guess .letter, #letters .letter {
-        cursor: pointer;
+        line-height: 2.75em;
       }
       #guess {
         display: flex;
@@ -96,7 +93,7 @@
         font-size: 0.5em;
         position: absolute;
         left: 50%;
-        bottom: -2px;
+        bottom: -4px;
         transform: translate(-50%,100%);
       }
       #guess .container:nth-child(1)::after, #guess .container:nth-child(2)::after, #guess .container:nth-child(3)::after {
@@ -156,19 +153,26 @@
         -ms-user-select: none;      
         user-select: none;
       }
+      .letter {
+        width: 2em;
+        height: 2em;
+      }
+      #guess .letter, #letters .letter {
+        cursor: pointer;
+      }
       #guess .container, #letters .container {
         position: relative;
         text-align: center;
-        line-height: 1.5em;
-        width: 1.5em;
-        height: 1.5em;
+        line-height: 2em;
+        width: 2em;
+        height: 2em;
         border: solid 1px black;
         border-radius: 0.1em;
         margin: 0.25em;
       }
       #submit {
-        width: 1.5em;
-        height: 1.5em;
+        width: 2em;
+        height: 2em;
         border: solid 1px black;
         border-radius: 0.1em;
         margin: 0.25em;
@@ -178,8 +182,9 @@
         display: inline-block;
         text-align: center;
         content: "✓";
-        width: 1.5em;
-        height: 1.5em;
+        width: 2em;
+        height: 2em;
+        line-height: 2em;
         cursor: pointer;
       }
       #shuffler {
@@ -225,10 +230,6 @@
         content: "Score:";
         margin-right: 1em;
         display: inline-block;
-      }
-      .letter {
-        width: 1.5em;
-        height: 1.5em;
       }
     </style>
   </head>
@@ -350,8 +351,11 @@
 
           let nextlevelunlocked = false;
           let gameOver = false;
+          let stoppingGame = false;
 
           const stopGame = ()=>{
+            if (stoppingGame) return;
+            stoppingGame = true;
             gameOver=true;
             [...words.values()].forEach(w=>{
               w.classList.remove("max");
@@ -536,19 +540,24 @@
           document.addEventListener("mousemove", e=>contactXY(e.clientX,e.clientY));
           document.addEventListener("touchmove", e=>contactXY(e.touches[0].clientX,e.touches[0].clientY));
 
+          let temporarilyDisableShuffle = false;
           const shuffleLetters = ()=>{
-            if (gameOver) return;
+            if (gameOver || temporarilyDisableShuffle) return;
+            temporarilyDisableShuffle = true;
             const lettersToShuffle = [...lettersDOM.children].filter(c=>c.childElementCount>0).map(c=>c.children[0]);
             if (lettersToShuffle.length<2) return;
             const copyLettersToShuffle = [...lettersToShuffle];
             while (lettersToShuffle.every((e,i)=>e===copyLettersToShuffle[i])) shuffleArray(lettersToShuffle);
             lettersToShuffle.forEach((l,i)=>lettersDOM.children[i].append(l));
+            setTimeout(()=>temporarilyDisableShuffle=false, 50);
           }
           document.querySelector("#shuffleButton").addEventListener("click", shuffleLetters);
           document.querySelector("#shuffleButton").addEventListener("touchstart", shuffleLetters);
 
+          let temporarilyDisableSubmit = false;
           const submit = ()=>{
-            if (gameOver) return;
+            if (gameOver||temporarilyDisableSubmit) return;
+            temporarilyDisableSubmit = true;
             const guess = guessDom.innerText.replace(/\n/g,'');
             if (guess.length<LEVELS[level-1].min) message("Words must be at least "+LEVELS[level-1].min+" letters long");
             else {
@@ -564,6 +573,7 @@
               if (lettersInGuess.length>0) lettersDOM.children[i].append(lettersInGuess.shift());
               else lettersDOM.children[i].append(lettersLeft.shift());
             }
+            setTimeout(()=>temporarilyDisableSubmit=false, 50);
           }
           document.querySelector("#submit").addEventListener("click", submit);
           document.querySelector("#submit").addEventListener("touchstart", submit);
