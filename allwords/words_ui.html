@@ -375,8 +375,11 @@
           let stoppingGame = false;
           let paused = false;
 
+          let temporarilyDisablePause = false;
           pause = ()=>{
             if (gameOver) return;
+            temporarilyDisablePause = true;
+            setTimeout(()=>temporarilyDisablePause=false, 300);
             paused = !paused;
             if (paused) {
               const d = document.querySelector("#timer").innerText.split(':');
@@ -392,6 +395,7 @@
               ui.style.display = 'flex';
             }
             else{
+              message("Game resumed.");
               ui.style.display = 'none';
               window.requestAnimationFrame(updateTimer);
             }
@@ -517,7 +521,7 @@
           });
 
           const words = new Map();
-          pi.sort((x,y)=>x.length==y.length?x>y:x.length>y.length).forEach(w=>{
+          pi.sort((x,y)=>Number(x.length==y.length?x>y:x.length>y.length)-0.5).forEach(w=>{
             const word = document.createElement("a");
             word.classList.add("word");
             w.split("").forEach(l=>{
