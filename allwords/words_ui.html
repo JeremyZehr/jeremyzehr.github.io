@@ -135,7 +135,7 @@
         cursor: pointer;
       }
       #lettersContainer {
-        min-height: 1.5em;
+        min-height: 2.5em;
         min-width: 20em;
         padding: 0.5em 0em;
         border: solid 1px black;
@@ -176,7 +176,7 @@
         border: solid 1px black;
         border-radius: 0.1em;
         margin: 0.25em;
-        transform: translateX(100%);
+        transform: translateX(33%);
       }
       #submit::before {
         display: inline-block;
@@ -231,6 +231,21 @@
         margin-right: 1em;
         display: inline-block;
       }
+      #time {
+        display: flex;
+        flex-direction: row;
+      }
+      #pause {
+        width: 1em;
+        height: 1em;
+        margin-right: 0.5em;
+        cursor: pointer;
+      }
+      #pause::before {
+        content: "⏸︎";
+        transform: translateY(-0.1em);
+        display: inline-block;
+      }
     </style>
   </head>
   <body>
@@ -255,6 +270,7 @@
     <script src="./scrabble_dic_4.json.js"></script>
     <script src="./scrabble_dic_5.json.js"></script>
     <script src="./scrabble_dic_6.json.js"></script>
+    <script src="./scrabble_dic_7.json.js"></script>
 
     <div id='container'>
       <div id='grid'>
@@ -283,7 +299,10 @@
         <div id='level'></div>
         <div id='hiscore'>0</div>
         <div id='score'>0</div>
-        <div id='timer'></div>
+        <div id='time'>
+          <div id='pause'></div>
+          <div id='timer'></div>
+        </div>
       </div>
 
       <script>
@@ -310,6 +329,7 @@
           4: JSON.parse(dic4),
           5: JSON.parse(dic5),
           6: JSON.parse(dic6),
+          7: JSON.parse(dic7)
         }
 
         let points = 0;
@@ -335,7 +355,7 @@
           let pi = [], tmpPoints = -1;
           while (tmpPoints<LEVELS[level-1].minP || tmpPoints>LEVELS[level-1].maxP || pi.length>MAX_WORDS) {
             pi = pick(LEVELS[level-1].max);
-            pi = pi.filter((w,i)=>pi.indexOf(w,i+1)<0);
+            pi = pi.filter((w,i)=>pi.indexOf(w,i+1)<0 && w.length >= LEVELS[level-1].min);
             tmpPoints = pi.map(w=>pointsPerLengths[w.length]).reduce((x,y)=>x+y);
           }
           console.log("words list", pi);
@@ -348,13 +368,41 @@
           nextlevelButton.classList.remove("unlocked");
           nextlevelButton.addEventListener("click",()=>nextlevelunlocked && stopGame());
           nextlevelButton.addEventListener("touchstart",()=>nextlevelunlocked && stopGame());
+          const pauseButton = document.querySelector("#pause");
 
           let nextlevelunlocked = false;
           let gameOver = false;
           let stoppingGame = false;
+          let paused = false;
+
+          pause = ()=>{
+            if (gameOver) return;
+            paused = !paused;
+            if (paused) {
+              const d = document.querySelector("#timer").innerText.split(':');
+              timer = Number(d[0])*60 + Number(d[1]);
+              startTimer = undefined;
+              message("Gamed paused.");
+              ui.innerHTML = "";
+              const resume = document.createElement("DIV");
+              resume.innerText = "Resume";
+              resume.addEventListener("click", pause);
+              resume.addEventListener("touchstart", pause);
+              ui.append(resume);
+              ui.style.display = 'flex';
+            }
+            else{
+              ui.style.display = 'none';
+              window.requestAnimationFrame(updateTimer);
+            }
+          }
+          pauseButton.addEventListener("click", pause);
+          pauseButton.addEventListener("touchstart", pause);
+          document.addEventListener("visibilitychange", () => document.visibilityState != "visible" && !paused && pause() );
+          window.addEventListener("blur", () => !paused && pause() );
 
           const stopGame = ()=>{
-            if (stoppingGame) return;
+            if (stoppingGame || paused) return;
             stoppingGame = true;
             gameOver=true;
             [...words.values()].forEach(w=>{
@@ -362,7 +410,7 @@
               w.reveal();
             });
             ui.innerText = "";
-            if (nextlevelunlocked && level<5) {
+            if (nextlevelunlocked && level<10) {
               level++;
               const nextlvl = document.createElement("div");
               nextlvl.innerText = "Next level";
@@ -385,7 +433,7 @@
           
           let timer = 180, startTimer;
           const updateTimer = timestamp => {
-            if (gameOver) return;
+            if (gameOver || paused) return;
             if (startTimer===undefined) startTimer=timestamp;
             const diff = timer - (timestamp-startTimer)/1000;
             if (diff<=0) stopGame();
@@ -519,7 +567,7 @@
           let down = false;
           const contactXY = (x,y) => {
             if (!down) return;
-            if (gameOver) return;
+            if (gameOver || paused) return;
             [...words.values()].forEach(w=>w.classList.remove("justfound"));
             document.elementsFromPoint(x,y).forEach(el=>{
               if (letterButtons.indexOf(el)<0) 
@@ -542,7 +590,7 @@
 
           let temporarilyDisableShuffle = false;
           const shuffleLetters = ()=>{
-            if (gameOver || temporarilyDisableShuffle) return;
+            if (gameOver || paused || temporarilyDisableShuffle) return;
             temporarilyDisableShuffle = true;
             setTimeout(()=>temporarilyDisableShuffle=false, 300);
             const lettersToShuffle = [...lettersDOM.children].filter(c=>c.childElementCount>0).map(c=>c.children[0]);
@@ -556,10 +604,11 @@
 
           let temporarilyDisableSubmit = false;
           const submit = ()=>{
-            if (gameOver||temporarilyDisableSubmit) return;
+            if (gameOver || paused || temporarilyDisableSubmit) return;
             temporarilyDisableSubmit = true;
             setTimeout(()=>temporarilyDisableSubmit=false, 300);
             const guess = guessDom.innerText.replace(/\n/g,'');
+            if (guess.length==0) return;
             if (guess.length<LEVELS[level-1].min) message("Words must be at least "+LEVELS[level-1].min+" letters long");
             else {
               const goodGuess = words.get(guess);
