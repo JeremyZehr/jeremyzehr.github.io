@@ -3,6 +3,48 @@
 <html>
   <head>
     <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+      #zoom {
+        position: fixed;
+        top: 9em;
+        left: 1em;
+        z-index: 2;
+        display: flex;
+        flex-direction: row;
+        width: 10em;
+        transform-origin: 0;
+        transform: rotate(270deg);
+      }
+      #zoom #minus, #zoom #plus {
+        width: 1.5em;
+        height: 1.5em;
+        background-color: white;
+        border: solid 1px black;
+        border-radius: 0.1em;
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+      #zoom #minus::before, #zoom #plus::before {
+        width: 1.5em;
+        height: 1.5em;
+        text-align: center;
+        display: inline-block;
+        line-height: 1.5em;
+      }
+      #zoom #minus::before {
+        content: "|";
+      }
+      #zoom #plus::before {
+        content: "+";
+      }
+      #zoom #scale {
+        width: 7em;
+      }
       #container {
         width: 100vw;
         height: 100vh;
@@ -176,7 +218,7 @@
         border: solid 1px black;
         border-radius: 0.1em;
         margin: 0.25em;
-        transform: translateX(33%);
+        transform: translateX(10%);
       }
       #submit::before {
         display: inline-block;
@@ -210,25 +252,26 @@
       }
       #stats {
         min-height: 1em;
-        min-width: 20em;
-        border: solid 1px black;
+        min-width: 25em;
+        max-width: 40em;
         display: flex;
         justify-content: space-evenly;
         padding-top: 1em;
+        margin: 0.5em auto;
       }
       #level::before {
         content: "Level:";
-        margin-right: 1em;
-        display: inline-block;
-      }
-      #hiscore::before {
-        content: "High Score:";
-        margin-right: 1em;
+        margin-right: 0.5em;
         display: inline-block;
       }
       #score::before {
         content: "Score:";
-        margin-right: 1em;
+        margin-right: 0.5em;
+        display: inline-block;
+      }
+      #hiscore::before {
+        content: "Highest:";
+        margin-right: 0.5em;
         display: inline-block;
       }
       #time {
@@ -278,6 +321,11 @@
     <script src="./gfreq_dic_6.json.js"></script>
     <script src="./gfreq_dic_7.json.js"></script>
 
+    <div id='zoom'>
+      <div id='minus'></div>
+      <input id='scale' type='range' min="0" max="100" />
+      <div id='plus'></div>
+    </div>
     <div id='container'>
       <div id='grid'>
         <div id='nextlevel'></div>
@@ -303,8 +351,8 @@
 
       <div id='stats'>
         <div id='level'></div>
-        <div id='hiscore'>0</div>
         <div id='score'>0</div>
+        <div id='hiscore'>0</div>
         <div id='time'>
           <div id='pause'></div>
           <div id='timer'></div>
@@ -342,7 +390,7 @@
         let hiscore = localStorage.getItem("hiscore") || 0;
         document.querySelector("#hiscore").innerText = hiscore;
 
-        const startGame = level => {
+        const startGame = async level => {
           if (level==1) points = 0;
 
           const pick = n_letters => {
@@ -395,8 +443,8 @@
               ui.innerHTML = "";
               const resume = document.createElement("DIV");
               resume.innerText = "Resume";
-              resume.addEventListener("click", pause);
-              resume.addEventListener("touchstart", pause);
+              resume.addEventListener("click", ()=>setTimeout(pause, 100));
+              resume.addEventListener("touchstart", ()=>setTimeout(pause, 100));
               ui.append(resume);
               ui.style.display = 'flex';
             }
@@ -441,6 +489,8 @@
             setTimeout(()=>ui.style.display='flex',2000);
           }
           
+          await new Promise(r=>setTimeout(r,200));
+
           let timer = 180, startTimer;
           const updateTimer = timestamp => {
             if (gameOver || paused) return;
@@ -638,6 +688,23 @@
           document.querySelector("#submit").addEventListener("touchstart", submit);
         }
 
+        let ratio = 1;
+        const zoom = percent => {
+          ratio = 0.5 + percent/100;
+          document.querySelector("#container").style.scale = ratio;
+        }
+        const scaleDOM = document.querySelector("#scale");
+        scaleDOM.addEventListener("input", e=>zoom(e.target.value));
+        const changeRatio = diff=>{
+          console.log("yay!");
+          ratio += diff;
+          scaleDOM.value = 100 * ratio - 50;
+          zoom(scaleDOM.value);
+        }
+        document.querySelector("#plus").addEventListener("click", e=>changeRatio(0.1));
+        document.querySelector("#plus").addEventListener("touchstart", e=>changeRatio(0.1));
+        document.querySelector("#minus").addEventListener("click", e=>changeRatio(-0.1));
+        document.querySelector("#minus").addEventListener("touchstart", e=>changeRatio(-0.1));
       </script>
     </div>
   </body>
