@@ -10,15 +10,15 @@ console.log("Hello from sw.js");
 // Files to cache
 const cacheName = 'allwords-v1';
 const appShellFiles = [
-  '/index.html',
-  '/app.js',
-  '/style.css',
-  '/gfreq_refs.json.js',
-  '/gfreq_dic_3.json.js',
-  '/gfreq_dic_4.json.js',
-  '/gfreq_dic_5.json.js',
-  '/gfreq_dic_6.json.js',
-  '/gfreq_dic_7.json.js'
+  './index.html',
+  './app.js',
+  './style.css',
+  './gfreq_refs.json.js',
+  './gfreq_dic_3.json.js',
+  './gfreq_dic_4.json.js',
+  './gfreq_dic_5.json.js',
+  './gfreq_dic_6.json.js',
+  './gfreq_dic_7.json.js'
 ];
 
 // Installing Service Worker
@@ -27,7 +27,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(cacheName);
     console.log('[Service Worker] Caching all: app shell and content');
-    await cache.addAll(contentToCache);
+    await cache.addAll(appShellFiles);
   })());
 });
 
