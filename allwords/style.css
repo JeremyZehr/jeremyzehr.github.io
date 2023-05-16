@@ -1,0 +1,286 @@
+body {
+  margin: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+#zoom {
+  position: fixed;
+  top: 9em;
+  left: 1em;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  width: 10em;
+  transform-origin: 0;
+  transform: rotate(270deg);
+}
+#zoom #minus, #zoom #plus {
+  width: 1.5em;
+  height: 1.5em;
+  background-color: white;
+  border: solid 1px black;
+  border-radius: 0.1em;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+#zoom #minus::before, #zoom #plus::before {
+  width: 1.5em;
+  height: 1.5em;
+  text-align: center;
+  display: inline-block;
+  line-height: 1.5em;
+}
+#zoom #minus::before {
+  content: "|";
+}
+#zoom #plus::before {
+  content: "+";
+}
+#zoom #scale {
+  width: 7em;
+}
+#container {
+  width: 100vw;
+  height: 100vh;
+  background-color: lightgray;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+#grid {
+  min-width: 20em;
+  min-height: 15em;
+  max-width: 25em;
+  max-height: 25em;
+  background-color: lightblue;
+  margin: 0.5em auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+#grid .word {
+  font-family: monospace;
+  margin-bottom: 0.5em;
+  width: max-content;
+  color: black;
+  text-decoration: none;
+}
+#grid .word.max.locked::after {
+  content: '🔒';
+}
+#grid .word.max.revealed::after {
+  content: '✓';
+}
+#grid .word.justfound {
+  border: solid 1px black;
+  border-radius: 0.1em;
+}
+#grid .word.notfound::after {
+  content: 'x';
+  font-weight: bold;
+  font-variant: super;
+  margin-left: 0.25em;
+}
+#grid .word .letter {
+  margin-right: 0.33em;
+}
+#grid #nextlevel {
+  position: absolute;
+  top: 0.5em;
+  right: 0.25em;
+  height: 1.5em;
+  width: 1em;
+  border: solid 1px darkred;
+  border-radius: 0.1em;
+  /* transform: translateX(100%); */
+}
+#grid #nextlevel::after {
+  content: '🔒';
+  line-height: 1.5em;
+}
+#grid #nextlevel.unlocked {
+  border: solid 1px darkgreen;
+  cursor: pointer;
+}
+#grid #nextlevel.unlocked::after {
+  content: '🔓';
+}
+#guessOrMessage {
+  height: 2.75em;
+  min-width: 20em;
+  border: solid 1px black;
+  text-align: center;
+  padding-bottom: 0.5em;
+}
+#message {
+  line-height: 2.75em;
+}
+#guess {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+#guess .container::after {
+  line-height: 1em;
+  font-size: 0.5em;
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translate(-50%,100%);
+}
+#guess .container:nth-child(1)::after, #guess .container:nth-child(2)::after, #guess .container:nth-child(3)::after {
+  content:'20';
+}
+#guess .container:nth-child(4)::after {
+  content:'30';
+}
+#guess .container:nth-child(5)::after {
+  content:'50';
+}
+#guess .container:nth-child(6)::after {
+  content:'80';
+}
+#guess .container:nth-child(7)::after {
+  content:'120';
+}
+#ui-container {
+  position: relative;
+  height: 0;
+}
+#ui {
+  position: absolute;
+  left: 50vw;
+  transform: translate(-50%,-1em);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  height: 5em;
+  background-color: white;
+  border: solid 1px black;
+  border-radius: 0.25em;
+  min-width: 20em;
+  max-width: 25em;
+  z-index: 10;
+  text-align: center;
+}
+#ui * {
+  cursor: pointer;
+}
+#lettersContainer {
+  min-height: 2.5em;
+  min-width: 20em;
+  padding: 0.5em 0em;
+  border: solid 1px black;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+#letters {
+  display: flex;
+  flex-direction: row;
+}
+#guess, #lettersContainer {
+  -webkit-user-select: none;  
+  -moz-user-select: none;    
+  -ms-user-select: none;      
+  user-select: none;
+}
+.letter {
+  width: 2em;
+  height: 2em;
+}
+#guess .letter, #letters .letter {
+  cursor: pointer;
+}
+#guess .container, #letters .container {
+  position: relative;
+  text-align: center;
+  line-height: 2em;
+  width: 2em;
+  height: 2em;
+  border: solid 1px black;
+  border-radius: 0.1em;
+  margin: 0.25em;
+}
+#submit {
+  width: 2em;
+  height: 2em;
+  border: solid 1px black;
+  border-radius: 0.1em;
+  margin: 0.25em;
+  transform: translateX(10%);
+}
+#submit::before {
+  display: inline-block;
+  text-align: center;
+  content: "✓";
+  width: 2em;
+  height: 2em;
+  line-height: 2em;
+  cursor: pointer;
+}
+#shuffler {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  height: 0em;
+}
+#shuffleButton::before {
+  content: "🔀";
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.5em;
+  line-height: 1.05em;
+}
+#shuffleButton {
+  height: 1.5em;
+  width: 1.5em;
+  transform: translateY(-25%);
+  border: solid 1px black;
+  cursor: pointer;
+  background-color: white;
+}
+#stats {
+  min-height: 1em;
+  min-width: 25em;
+  max-width: 40em;
+  display: flex;
+  justify-content: space-evenly;
+  padding-top: 1em;
+  margin: 0.5em auto;
+}
+#level::before {
+  content: "Level:";
+  margin-right: 0.5em;
+  display: inline-block;
+}
+#score::before {
+  content: "Score:";
+  margin-right: 0.5em;
+  display: inline-block;
+}
+#hiscore::before {
+  content: "Highest:";
+  margin-right: 0.5em;
+  display: inline-block;
+}
+#time {
+  display: flex;
+  flex-direction: row;
+}
+#pause {
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+  cursor: pointer;
+}
+#pause::before {
+  content: "⏸︎";
+  transform: translateY(-0.1em);
+  display: inline-block;
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>AllWords</title>
+    <meta name="description" content="Progressive Web App clone of the kindle game Every Word">
+    <meta name="author" content="Jeremy Zehr">
+    <!-- <meta name="theme-color" content="#B12A34"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <meta property="og:image" content="icons/icon-512.png"> -->
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="allwords.webmanifest">
+    <script src="gfreq_refs.json.js" defer></script>
+    <script src="gfreq_dic_3.json.js" defer></script>
+    <script src="gfreq_dic_4.json.js" defer></script>
+    <script src="gfreq_dic_5.json.js" defer></script>
+    <script src="gfreq_dic_6.json.js" defer></script>
+    <script src="gfreq_dic_7.json.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div id='zoom'>
+      <div id='minus'></div>
+      <input id='scale' type='range' min="0" max="100" />
+      <div id='plus'></div>
+    </div>
+    <div id='container'>
+      <div id='grid'>
+        <div id='nextlevel'></div>
+      </div>
+
+      <div id='guessOrMessage'>
+        <div id='message'></div>
+        <div id='guess'></div>
+      </div>
+
+      <div id='ui-container'>
+        <div id='ui'></div>
+      </div>
+
+      <div id='lettersContainer'>
+        <div id='letters'></div>
+        <div id='submit'></div>
+      </div>
+
+      <div id='shuffler'>
+        <div id='shuffleButton'></div>
+      </div>
+
+      <div id='stats'>
+        <div id='level'></div>
+        <div id='score'>0</div>
+        <div id='hiscore'>0</div>
+        <div id='time'>
+          <div id='pause'></div>
+          <div id='timer'></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
