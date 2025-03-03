@@ -1,12 +1,12 @@
 // Files to cache
 const cacheName = 'wridges-v1';
 const contentToCache = [
-  '/worker.js',
-  '/mots.js',
-  '/grid.js',
-  '/script.js',
-  '/style.css',
-  '/index.html'
+  './worker.js',
+  './mots.js',
+  './grid.js',
+  './script.js',
+  './style.css',
+  './index.html'
 ];
 
 // Installing Service Worker
