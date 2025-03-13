@@ -1,7 +1,9 @@
 body {
-  left: 100vw;
+  width: 100vw;
   height: 100vh;
   overflow: hidden;
+  margin: 0px;
+  touch-action: none;
 }
 #loadingScreen {
   position: fixed;
@@ -62,6 +64,7 @@ body {
 }
 #score, #timer, #skip {
   line-height: 4.5em;
+  z-index: 999;
 }
 #score::before {
   content: "Niv. ";
@@ -91,13 +94,11 @@ body {
 }
 
 .grid {
-  position: absolute;
+  position: relative;
   top: 0em;
   left: 0em;
-  overflow: hidden;
-  width: calc(100vw - 4em);
-  height: calc(100vh - 4em);
-  padding: 1em 2em;
+  width: 100vw;
+  height: calc(100vh - 4.5em);
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -130,7 +131,7 @@ body {
   position: absolute;
   bottom: 0px;
   transform-origin: bottom;
-  transform: scale(2);
+  transform: scale(2) translateY(0.75em);
 }
 .grid .row span {
   position: absolute;
@@ -156,10 +157,9 @@ body {
   font-variant: small-caps;
   text-align: center;
   clip-path: polygon(50% 1%, 99% 25%, 99% 75%, 50% 99%, 1% 75%, 1% 25%);
-  /* clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); */
   background-color: bisque;
 }
-.grid .cell:not(.selected):hover {
+/* .grid .cell:not(.selected):hover {
   clip-path: polygon(
     50% calc(0% + 0.25em),
     calc(100% - 0.25em) calc(25% + 0.12em),
@@ -168,7 +168,7 @@ body {
     calc(0% + 0.25em) calc(75% - 0.12em),
     calc(0% + 0.25em) calc(25% + 0.12em)
   );
-}
+} */
 /* .cell.red { background-color: red !important; }
 .cell.green { background-color: green !important; }
 .cell.blue { background-color: blue !important; }

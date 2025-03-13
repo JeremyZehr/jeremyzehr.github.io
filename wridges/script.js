@@ -6,6 +6,16 @@ function msToDisplay(ms) {
   return `${mins}:${secsToDisplay}`;
 }
 
+function customEvent(...args) {
+  const nodes = args.filter(a=>a === window || a instanceof Node);
+  const events = args.filter(a=>typeof(a) == "string");
+  const handlers = args.filter(a=>a instanceof Function);
+  for (let node of nodes)
+    for (let event of events)
+      for (handler of handlers)
+        node.addEventListener(event, handler);
+}
+
 async function registerWorker() {
   // Registering Service Worker
   if (!('serviceWorker' in navigator))
@@ -55,7 +65,7 @@ async function alignBottomEdgeWithRow(rowId, immediate=false) {
   const nrow = activeRowTr.getAttribute("nrow");
   const dummyRow = document.getElementById("dummyRow");
   const {height} = dummyRow.getBoundingClientRect();
-  table.style.bottom = `calc(${-1 * nrow} * (${height}px - 0.75em) + 1em)`;
+  table.style.bottom = `calc(${-1 * nrow} * (${height}px - 0.75em))`;
   table.style.transformOrigin = `center calc(${(table.children.length - nrow)} * (${height}px - 0.75em))`;
   for (let child of [...table.children].reverse()) {
     if (child.id === activeRow) break;
@@ -95,7 +105,7 @@ function drawRows(rows=[]) {
         tr.classList.add("selected");
         path.push(info);
       });
-      td.addEventListener("pointerenter", ()=>{
+      customEvent(td, "pointerenter", ()=>{
         if (path.length==0) return;
         const pIdx = path.indexOf(info);
         if (pIdx > -1) {
@@ -116,6 +126,21 @@ function drawRows(rows=[]) {
     }
     table.prepend(tr);
   }
+  // Add a touchmove event on the whole table for mobile devices,
+  // which won't trigger pointerenter otherwise
+  customEvent(table, "touchmove", e=>{
+    const cx = e.targetTouches[0].clientX, cy = e.targetTouches[0].clientY;
+    const trs = [...table.children].reverse();
+    for (let tr of trs) {
+      var {x,y,width,height} = tr.getBoundingClientRect();
+      if (cx < x || cx > x+width || cy < y || cy > y+height) continue;
+      for (let td of tr.children) {
+        var {x,y,width,height} = td.getBoundingClientRect();
+        if (cx < x || cx > x+width || cy < y || cy > y+height) continue;
+        return td.dispatchEvent(new Event("pointerenter"));
+      }
+    }
+  });
   table.classList.add("table");
   document.getElementById("grid").replaceChildren(table);
   if (activeRow)
@@ -150,7 +175,26 @@ function goToRow(rowId) {
   }
 }
 
+const updateDisplay = () => {
+  const cWidth = document.documentElement.clientWidth;
+  const cHeight = document.documentElement.clientHeight;
+  if (cHeight > cWidth) {
+    const table = document.querySelector("#grid .table")
+    const currentScale = table.style.transform.replace(/^.*scale\((\d+(\.\d+)?)\).*$/, "$1");
+    const {width} = document.querySelector("#dummyGrid .table").getBoundingClientRect();
+    const newScale = (cWidth - 40) / width; // At least 20px on each side
+    if (Math.abs(newScale - currentScale) > 0.1)
+      table.style.transform = `scale(${newScale}) translateY(0.75em)`;
+  }
+  // Update the height of the grid (calc(100vw - 4.5em) doesn't work on mobile devices)
+  const grid = document.getElementById("grid");
+  grid.style.height = `${cHeight - document.getElementById("bottomBar").getBoundingClientRect().height}px`;
+  window.requestAnimationFrame(updateDisplay);
+}
+
 document.addEventListener("DOMContentLoaded", ()=>{
+  updateDisplay();
+
   const worker = new Worker("worker.js");
   let workerCallbacks = [];
   let msgId = 0;
@@ -213,13 +257,13 @@ document.addEventListener("DOMContentLoaded", ()=>{
     }
     loadingBar.style.background = `linear-gradient(to right, pink 100%, white 0%)`;
     loadingText.innerHTML = "D&eacute;part dans 3s";
-    await new Promise(r=>setTimeout(r,1000));
-    loadingText.innerHTML = "D&eacute;part dans 2s";
-    await new Promise(r=>setTimeout(r,1000));
-    loadingText.innerHTML = "D&eacute;part dans 1s";
-    await new Promise(r=>setTimeout(r,1000));
-    loadingText.innerHTML = "C'est parti !";
-    await new Promise(r=>setTimeout(r,500));
+    // await new Promise(r=>setTimeout(r,1000));
+    // loadingText.innerHTML = "D&eacute;part dans 2s";
+    // await new Promise(r=>setTimeout(r,1000));
+    // loadingText.innerHTML = "D&eacute;part dans 1s";
+    // await new Promise(r=>setTimeout(r,1000));
+    // loadingText.innerHTML = "C'est parti !";
+    // await new Promise(r=>setTimeout(r,500));
     loadingScreen.style.display = "none";
     window.requestAnimationFrame(updateTimer);
   };
@@ -230,17 +274,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
   });
 
   document.getElementById("skip").addEventListener("pointerdown", async (e) => {
+    console.log("skip!");
     if (skips <= 0) return;
     skips += -1;
     e.target.innerText = `Passer le niveau (${Math.max(0, skips)})`;
     if (skips <= 0) e.target.classList.add("disabled");
     const rowActive = document.getElementById(activeRow);
     const rowAbove = rowActive.previousSibling;
+    console.log("goToRow", rowAbove.id);
     goToRow(rowAbove.id);
   });
 
-  window.addEventListener("pointerup", async ()=>{
-    console.log("pointerup");
+  customEvent(window, "pointerup", "touchcancel", async ()=>{
     let word = "";
     let nRowLastCell = 0;
     while (path.length) {
@@ -270,5 +315,4 @@ document.addEventListener("DOMContentLoaded", ()=>{
     }
     wentUp = false;
   });
-
 })
