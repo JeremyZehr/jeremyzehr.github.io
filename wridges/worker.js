@@ -108,6 +108,7 @@ class Grid {
     this._rows = rows || [];
     this._indicesRows = new Map();
     this._idRows = {};
+    this._nBottomRow = 0;
     for (let n=0; n<this._rows.length; n++) {
       this._indicesRows.set(this._rows[n], n);
       this._idRows[this._rows[n]._id] = this._rows[n];
@@ -142,6 +143,7 @@ class Grid {
     const newGrid = new Grid(this._rows.slice(row_start,row_end).map(r=>r.copy()));
     while (newGrid._rows.length < row_end-row_start)
       newGrid.addRow();
+    newGrid._nBottomRow = this._nBottomRow + row_start;
     return newGrid;
   }
   copy() {
@@ -357,6 +359,7 @@ onmessage = async (event) => {
       payload.action = "draw";
       payload.rows = rows
       payload.activeRow = rows[0].id;
+      payload.nBottomRow = grid._nBottomRow;
     }
     postMessage(payload);
   }

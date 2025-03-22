@@ -46,11 +46,25 @@ async function registerWorker() {
 }
 registerWorker();
 
+const TODAY = (()=>{
+  const d = new Date();
+  return [d.getFullYear(), d.getMonth(), d.getDate()].join("");
+})();
+let allScores = [], topScoreToday;
+
 let path = [], wentUp = false, activeRow;
 let askEngine = async (data) => null;
 
-function gameover() {
+async function gameover(score) {
   document.getElementById("grid").classList.add("disabled");
+  if (topScoreToday && topScoreToday > score)
+    return;
+  if (!topScoreToday)
+    await setDB(TODAY, score);
+  else if (score > topScoreToday)
+    await updateDB(TODAY, score);
+  topScoreToday = score;
+  allScores = await getAllDB();
 }
 
 async function alignBottomEdgeWithRow(rowId, immediate=false) {
@@ -73,9 +87,10 @@ async function alignBottomEdgeWithRow(rowId, immediate=false) {
   }
 }
 
-function drawRows(rows=[]) {
+function drawRows(rows=[], nBottomRow=0) {
   const table = document.createElement("DIV");
   let nrow=-1;
+  console.log("topScoreToday", topScoreToday, "nBottomRow", nBottomRow);
   for (let {id, cells} of rows) {
     nrow += 1;
     const tr = document.createElement("DIV");
@@ -83,6 +98,8 @@ function drawRows(rows=[]) {
     idx.innerText = nrow;
     tr.append(idx);
     tr.classList.add("row");
+    if (topScoreToday && nrow+nBottomRow == topScoreToday)
+      tr.classList.add("topScore");
     tr.id = id;
     tr.setAttribute("nrow", nrow);
     if (cells.length == 4)
@@ -149,8 +166,8 @@ function drawRows(rows=[]) {
 
 async function addRowsToGrid(n=3, maxLength=-1) {
   const data = await askEngine({extend: n, maxLength: maxLength, activeRow: activeRow});
-  console.log("added rows!");
-  drawRows(data.rows, data.activeRow);
+  console.log("added rows!", data);
+  drawRows(data.rows, data.nBottomRow);
   if (!activeRow)
     alignBottomEdgeWithRow(data.rows[0].id);
 }
@@ -192,7 +209,9 @@ const updateDisplay = () => {
   window.requestAnimationFrame(updateDisplay);
 }
 
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded", async ()=>{
+  let score = 0, skips = 1;
+
   updateDisplay();
 
   const worker = new Worker("worker.js");
@@ -225,11 +244,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
     if (perc < 50) wheelColor = "orange";
     if (perc <= 17) wheelColor = "red";
     timerWheel.style.background = `conic-gradient(white ${100 - perc}%, 0, ${wheelColor}) border-box`;
-    if (difference <= 0) return gameover();
+    if (difference <= 0) return gameover(score);
     window.requestAnimationFrame(updateTimer);
   }
 
-  let score = 0, skips = 1;
   const start = async ()=>{
     activeRow = undefined;
     startTime = undefined;
@@ -267,7 +285,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     loadingScreen.style.display = "none";
     window.requestAnimationFrame(updateTimer);
   };
-  start();
+  
   document.getElementById("addWord").addEventListener("pointerdown", async () => {
     await askEngine({reset: true});
     start();
@@ -275,8 +293,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   document.getElementById("skip").addEventListener("pointerdown", async (e) => {
     console.log("skip!");
-    if (skips <= 0) return;
+    const grid = document.getElementById("grid");
+    if (skips <= 0 || [grid,e.target].some(x=>x.classList.contains("disabled"))) return;
     skips += -1;
+    score += 1;
+    document.getElementById("score").innerText = score;
     e.target.innerText = `Passer le niveau (${Math.max(0, skips)})`;
     if (skips <= 0) e.target.classList.add("disabled");
     const rowActive = document.getElementById(activeRow);
@@ -315,4 +336,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
     }
     wentUp = false;
   });
+
+  await initDB();
+  allScores = await getAllDB();
+  const record = allScores.find(s=>s.day === TODAY);
+  if (record)
+    topScoreToday = record.score;
+  start();
 })

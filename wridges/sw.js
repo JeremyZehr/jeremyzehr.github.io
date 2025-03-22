@@ -3,6 +3,7 @@ const cacheName = 'wridges-v1';
 const contentToCache = [
   './worker.js',
   './mots.js',
+  './indexeddb.js',
   './script.js',
   './style.css',
   './index.html',
