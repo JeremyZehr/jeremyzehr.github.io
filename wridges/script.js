@@ -48,23 +48,36 @@ registerWorker();
 
 const TODAY = (()=>{
   const d = new Date();
-  return [d.getFullYear(), d.getMonth(), d.getDate()].join("");
+  return [d.getFullYear(), d.getMonth()+1, d.getDate()].map(n=>n < 10 ? "0"+n : n).join("");
 })();
-let allScores = [], topScoreToday;
-
+let allBonusLetters = [], allScores = [], topScoreToday;
+let bonusLettersCollected = [], score = 0, skips = 1;
 let path = [], wentUp = false, activeRow;
 let askEngine = async (data) => null;
 
 async function gameover(score) {
   document.getElementById("grid").classList.add("disabled");
-  if (topScoreToday && topScoreToday > score)
-    return;
+  const gameoverNode = document.getElementById("gameover");
+  gameoverNode.querySelector("[name='level']").innerText = score;
+  for (let n in allBonusLetters) {
+    const span = gameoverNode.querySelector(`[name='bonus${parseInt(n)+1}']`);
+    if (bonusLettersCollected.some(l=>l.id == allBonusLetters[n].id))
+      span.innerText = allBonusLetters[n].letter;
+    else
+      span.innerText = "*";
+  }
   if (!topScoreToday)
     await setDB(TODAY, score);
   else if (score > topScoreToday)
     await updateDB(TODAY, score);
-  topScoreToday = score;
+  topScoreToday = Math.max(score, topScoreToday || 0);
   allScores = await getAllDB();
+  const allScoresNode = gameoverNode.querySelector("[name='allScores']");
+  for (let {day, score} of allScores) {
+    const record = document.createElement("SPAN");
+    record.innerText = `${day.slice(0,4)}-${day.slice(4,6)}-${day.slice(6,8)} : ${score}`;
+    allScoresNode.prepend(record);
+  }
 }
 
 async function alignBottomEdgeWithRow(rowId, immediate=false) {
@@ -90,7 +103,6 @@ async function alignBottomEdgeWithRow(rowId, immediate=false) {
 function drawRows(rows=[], nBottomRow=0) {
   const table = document.createElement("DIV");
   let nrow=-1;
-  console.log("topScoreToday", topScoreToday, "nBottomRow", nBottomRow);
   for (let {id, cells} of rows) {
     nrow += 1;
     const tr = document.createElement("DIV");
@@ -107,9 +119,17 @@ function drawRows(rows=[], nBottomRow=0) {
     else
       tr.classList.add("five");
     const rowId = id;
-    for (let {color, letter, id, neighbors} of cells) {
+    for (let {color, letter, id, neighbors, bonusLetter} of cells) {
       const td = document.createElement("DIV");
       td.classList.add("cell");
+      if (bonusLetter) {
+        td.classList.add("bonus");
+        if (!bonusLettersCollected.some(l=>l.id === id))
+          td.classList.add("uncollected");
+        const nextBonusLetter = allBonusLetters.find(l=>l.id === null);
+        if (nextBonusLetter && !allBonusLetters.some(l=>l.id === id))
+          nextBonusLetter.id = id;
+      }
       td.classList.add(color);
       td.innerText = letter;//.toUpperCase();
       td.id = id;
@@ -119,7 +139,6 @@ function drawRows(rows=[], nBottomRow=0) {
         if (rowId != activeRow) return;
         console.log("pointer down");
         td.classList.add("selected");
-        tr.classList.add("selected");
         path.push(info);
       });
       customEvent(td, "pointerenter", ()=>{
@@ -210,7 +229,6 @@ const updateDisplay = () => {
 }
 
 document.addEventListener("DOMContentLoaded", async ()=>{
-  let score = 0, skips = 1;
 
   updateDisplay();
 
@@ -253,6 +271,8 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     startTime = undefined;
     score = 0;
     skips = 1;
+    allBonusLetters.forEach(l=>l.id = null);
+    bonusLettersCollected = [];
     document.getElementById("score").innerText = score;
     const skipNode = document.getElementById("skip");
     skipNode.innerText = `Passer le niveau (${skips})`;
@@ -309,10 +329,18 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   customEvent(window, "pointerup", "touchcancel", async ()=>{
     let word = "";
     let nRowLastCell = 0;
+    const bonusInPath = [];
     while (path.length) {
       const [letter,neighbors,nrow,td] = path.shift();
       td.classList.remove("selected");
       td.parentElement.classList.remove("selected");
+      if (td.classList.contains("uncollected")) {
+        bonusInPath.push({letter: letter, id: td.id});
+        skips += 1;
+        const skipNode = document.getElementById("skip");
+        skipNode.innerText = `Passer le niveau (${Math.max(0, skips)})`;
+        skipNode.classList.remove("disabled");
+      }
       word += letter;
       nRowLastCell = nrow;
     }
@@ -331,6 +359,15 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       score += levelsGained;
       startTime += 1000 * levelsGained;
       startTime += 1000 * Math.max(0, word.length-3);
+      while (bonusInPath.length) {
+        startTime += 2000 * (bonusLettersCollected.length+1);
+        if (bonusLettersCollected.length==4)
+          startTime += 10000;
+        const collected = bonusInPath.shift();
+        const td = document.getElementById(collected.id);
+        td.classList.remove("uncollected");
+        bonusLettersCollected.push(collected);
+      }
       document.getElementById("score").innerText = score;
       goToRow(newBottomRow.id);
     }
@@ -342,5 +379,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   const record = allScores.find(s=>s.day === TODAY);
   if (record)
     topScoreToday = record.score;
+  const dataBonusLetters = await askEngine({getBonusLetters: true});
+  allBonusLetters = dataBonusLetters.bonusLetters;
   start();
 })

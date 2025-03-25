@@ -103,11 +103,14 @@ body {
   flex-direction: row;
   justify-content: center;
 }
+#gameover {
+  display: none;
+}
 .grid.disabled {
   pointer-events: none;
   opacity: 0.75;
 }
-.grid.disabled::before {
+/* .grid.disabled::before {
   content: "Partie finie";
   display: block;
   position: absolute;
@@ -120,6 +123,38 @@ body {
   background: rgba(0, 0, 0, 0.2);
   color: beige;
   filter: drop-shadow(2px 2px black);
+} */
+.grid.disabled + #gameover {
+  display: block;
+  position: absolute;
+  width: 50vw;
+  height: 80vh;
+  top: 5vh;
+  left: 20vw;
+  padding: 5vh 5vw;
+  background-color: antiquewhite;
+  z-index: 9999;
+  border-radius: 1em;
+  box-shadow: 0px 0px 20px black;
+}
+#gameover div {
+  margin: 1em 0em;
+}
+#gameover .bonuses {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+#gameover .bonuses span[name^='bonus'] {
+  height: 2em;
+  width: 2em;
+  font-size: 2em;
+  display: inline-block;
+  background-color: burlywood;
+  text-align: center;
+  line-height: 2em;
+  font-variant: small-caps;
+  clip-path: polygon(50% 1%, 99% 25%, 99% 75%, 50% 99%, 1% 75%, 1% 25%);
 }
 .grid .table {
   width: 15em;
@@ -186,9 +221,17 @@ body {
 }
 .cell.selected { 
   background:
-    linear-gradient(155deg,pink 30%, lightcoral 70%) right/50% 100%,
-    linear-gradient(205deg,pink 30%, lightcoral 70%) left/50% 100%;
+    linear-gradient(155deg,bisque 30%, goldenrod 70%) right/50% 100%,
+    linear-gradient(205deg,bisque 30%, goldenrod 70%) left/50% 100%;
   background-repeat: no-repeat;
+}
+.cell.bonus.uncollected {
+  background-color: magenta !important;
+}
+.cell.bonus::after {
+  position: absolute;
+  content: "*";
+  transform: translate(-0.5em, 0.9em) scale(0.75);
 }
 
 #dummyGrid {

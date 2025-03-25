@@ -73,6 +73,12 @@ const delta = {
 };
 
 let wordId = 0;
+const fiveLetterWords = Object.keys(DICTIONARY["5"]);
+let bonusRnd = random();
+while (bonusRnd * fiveLetterWords.length < 0.1)
+  bonusRnd = random();
+const bonusWord = fiveLetterWords[Math.floor(random()*fiveLetterWords.length)];
+const bonusLetters = bonusWord.split("").map(l=>Object({letter: l, id: null, nrow: null}));
 
 class Cell {
   constructor(letter="") {
@@ -325,9 +331,12 @@ onmessage = async (event) => {
     if ("reset" in data) {
       random = sfc32(d.getFullYear(), d.getMonth(), d.getDate(), 1);
       wordId = 0;
+      bonusLetters.forEach(l=>l.id = null);
       grid = new Grid();
     }
-    if ("extend" in data) {
+    else if ("getBonusLetters" in data)
+      payload.bonusLetters = bonusLetters;
+    else if ("extend" in data) {
       if ("activeRow" in data && data.activeRow in grid._idRows) {
         const activeRow = grid._idRows[data.activeRow];
         const nrow = grid._indicesRows.get(activeRow);
@@ -339,7 +348,7 @@ onmessage = async (event) => {
       console.log("Processing extend", grid);
       await grid.extendGrid(data.extend, data.maxLength);
       console.log("Grid extended", grid);
-      const rows = grid._rows.map(r=>Object({
+      const rows = grid._rows.map((r,nr)=>Object({
         id: r._id,
         cells: r._cells.map(c=>{
           const neighbors = grid.getCellsNeighbors(c, r);
@@ -348,12 +357,32 @@ onmessage = async (event) => {
               .filter(([pos,cell])=>cell != null)
               .map(([pos,cell])=>[cell._id,pos])
           );
-          return {
+          const ret = {
             color: c._wordColor,
             letter: c._letter,
             id: c._id,
-            neighbors: nIdToPos
+            neighbors: nIdToPos,
+            bonusLetter: bonusLetters.some(l=>l.id === c._id)
           };
+          if (ret.bonusLetter)
+            return ret;
+          if (!c._wordId)
+            return ret;
+          const nextBonusLetterId = bonusLetters.findIndex(l=>l.id === null);
+          if (nextBonusLetterId < 0)
+            return ret;
+          const bonusLetterThreshold = Math.max(
+            10 * (nextBonusLetterId+1),
+            nextBonusLetterId == 0 ? 0 : bonusLetters[nextBonusLetterId-1].nrow + 10
+          );
+          if (grid._nBottomRow + nr < bonusLetterThreshold)
+            return ret;
+          if (c._letter != bonusLetters[nextBonusLetterId].letter)
+            return ret;
+          ret.bonusLetter = true;
+          bonusLetters[nextBonusLetterId].id = c._id;
+          bonusLetters[nextBonusLetterId].nrow = nr+grid._nBottomRow;
+          return ret;
         })
       }));
       payload.action = "draw";
