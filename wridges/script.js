@@ -66,16 +66,26 @@ async function gameover(score) {
     else
       span.innerText = "*";
   }
-  if (!topScoreToday)
+  if (topScoreToday === undefined)
     await setDB(TODAY, score);
   else if (score > topScoreToday)
     await updateDB(TODAY, score);
   topScoreToday = Math.max(score, topScoreToday || 0);
   allScores = await getAllDB();
   const allScoresNode = gameoverNode.querySelector("[name='allScores']");
+  allScoresNode.replaceChildren();
   for (let {day, score} of allScores) {
     const record = document.createElement("SPAN");
-    record.innerText = `${day.slice(0,4)}-${day.slice(4,6)}-${day.slice(6,8)} : ${score}`;
+    const dateTxt = `${day.slice(0,4)}-${day.slice(4,6)}-${day.slice(6,8)}`;
+    record.innerText = `${dateTxt} : ${score}`;
+    const tryThatDay = document.createElement("INPUT");
+    tryThatDay.type = "button";
+    tryThatDay.value = "↺";
+    tryThatDay.addEventListener("pointerdown", async () => {
+      await askEngine({reset: dateTxt});
+      start();
+    });
+    record.append(tryThatDay);
     allScoresNode.prepend(record);
   }
 }
@@ -172,7 +182,9 @@ function drawRows(rows=[], nBottomRow=0) {
       if (cx < x || cx > x+width || cy < y || cy > y+height) continue;
       for (let td of tr.children) {
         var {x,y,width,height} = td.getBoundingClientRect();
-        if (cx < x || cx > x+width || cy < y || cy > y+height) continue;
+        const touchPadding = 15;
+        const x2 = x+touchPadding, y2 = y+touchPadding;
+        if (cx < x2 || cx > x2+width || cy < y2 || cy > y2+height) continue;
         return td.dispatchEvent(new Event("pointerenter"));
       }
     }
@@ -228,6 +240,63 @@ const updateDisplay = () => {
   window.requestAnimationFrame(updateDisplay);
 }
 
+
+const TTL = 60000;
+let startTime = undefined;
+const updateTimer = timestamp => {
+  if (startTime === undefined) startTime = timestamp;
+  const difference = TTL - (timestamp - startTime);
+  document.getElementById("timer").innerText = msToDisplay(Math.max(0, difference));
+  const timerWheel = document.getElementById("timerWheel");
+  let wheelColor = "green";
+  const perc = 100 * Math.min(1, difference / TTL);
+  if (perc < 50) wheelColor = "orange";
+  if (perc <= 17) wheelColor = "red";
+  timerWheel.style.background = `conic-gradient(white ${100 - perc}%, 0, ${wheelColor}) border-box`;
+  if (difference <= 0) return gameover(score);
+  window.requestAnimationFrame(updateTimer);
+}
+
+const start = async ()=>{
+  activeRow = undefined;
+  startTime = undefined;
+  score = 0;
+  skips = 1;
+  allBonusLetters.forEach(l=>l.id = null);
+  bonusLettersCollected = [];
+  document.getElementById("score").innerText = score;
+  const skipNode = document.getElementById("skip");
+  skipNode.innerText = `Passer le niveau (${skips})`;
+  skipNode.classList.remove("disabled");
+  // loading
+  const loadingScreen = document.getElementById("loadingScreen");
+  const loadingText = document.getElementById("loadingText");
+  const loadingBar = document.getElementById("loadingBar");
+  loadingScreen.style.display = "flex";
+  document.getElementById("grid").classList.remove("disabled");
+  loadingText.innerText = "Chargement...";
+  loadingBar.style.background = "linear-gradient(to right, pink 0%, white 0%)";
+  // Start by adding 7*5 rows of short words for performance
+  const lengths = [4,5,5,6,6,6,6];
+  let nRowsPerIteration = 5;
+  for (let n in lengths) {
+    const maxLength = lengths[n];
+    loadingBar.style.background = `linear-gradient(to right, pink ${100 * n / lengths.length}%, white 0%)`;
+    await addRowsToGrid(nRowsPerIteration, maxLength);
+  }
+  loadingBar.style.background = `linear-gradient(to right, pink 100%, white 0%)`;
+  loadingText.innerHTML = "D&eacute;part dans 3s";
+  // await new Promise(r=>setTimeout(r,1000));
+  // loadingText.innerHTML = "D&eacute;part dans 2s";
+  // await new Promise(r=>setTimeout(r,1000));
+  // loadingText.innerHTML = "D&eacute;part dans 1s";
+  // await new Promise(r=>setTimeout(r,1000));
+  // loadingText.innerHTML = "C'est parti !";
+  // await new Promise(r=>setTimeout(r,500));
+  loadingScreen.style.display = "none";
+  window.requestAnimationFrame(updateTimer);
+};
+
 document.addEventListener("DOMContentLoaded", async ()=>{
 
   updateDisplay();
@@ -249,62 +318,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   });
   worker.onerror = e=>console.log("error", e);
   worker.onmessage = (event) => workerCallbacks.forEach(f=>f instanceof Function && f.call(worker, event.data));
-
-  const TTL = 60000;
-  let startTime = undefined;
-  const updateTimer = timestamp => {
-    if (startTime === undefined) startTime = timestamp;
-    const difference = TTL - (timestamp - startTime);
-    document.getElementById("timer").innerText = msToDisplay(Math.max(0, difference));
-    const timerWheel = document.getElementById("timerWheel");
-    let wheelColor = "green";
-    const perc = 100 * Math.min(1, difference / TTL);
-    if (perc < 50) wheelColor = "orange";
-    if (perc <= 17) wheelColor = "red";
-    timerWheel.style.background = `conic-gradient(white ${100 - perc}%, 0, ${wheelColor}) border-box`;
-    if (difference <= 0) return gameover(score);
-    window.requestAnimationFrame(updateTimer);
-  }
-
-  const start = async ()=>{
-    activeRow = undefined;
-    startTime = undefined;
-    score = 0;
-    skips = 1;
-    allBonusLetters.forEach(l=>l.id = null);
-    bonusLettersCollected = [];
-    document.getElementById("score").innerText = score;
-    const skipNode = document.getElementById("skip");
-    skipNode.innerText = `Passer le niveau (${skips})`;
-    skipNode.classList.remove("disabled");
-    // loading
-    const loadingScreen = document.getElementById("loadingScreen");
-    const loadingText = document.getElementById("loadingText");
-    const loadingBar = document.getElementById("loadingBar");
-    loadingScreen.style.display = "flex";
-    document.getElementById("grid").classList.remove("disabled");
-    loadingText.innerText = "Chargement...";
-    loadingBar.style.background = "linear-gradient(to right, pink 0%, white 0%)";
-    // Start by adding 7*5 rows of short words for performance
-    const lengths = [4,5,5,6,6,6,6];
-    let nRowsPerIteration = 5;
-    for (let n in lengths) {
-      const maxLength = lengths[n];
-      loadingBar.style.background = `linear-gradient(to right, pink ${100 * n / lengths.length}%, white 0%)`;
-      await addRowsToGrid(nRowsPerIteration, maxLength);
-    }
-    loadingBar.style.background = `linear-gradient(to right, pink 100%, white 0%)`;
-    loadingText.innerHTML = "D&eacute;part dans 3s";
-    // await new Promise(r=>setTimeout(r,1000));
-    // loadingText.innerHTML = "D&eacute;part dans 2s";
-    // await new Promise(r=>setTimeout(r,1000));
-    // loadingText.innerHTML = "D&eacute;part dans 1s";
-    // await new Promise(r=>setTimeout(r,1000));
-    // loadingText.innerHTML = "C'est parti !";
-    // await new Promise(r=>setTimeout(r,500));
-    loadingScreen.style.display = "none";
-    window.requestAnimationFrame(updateTimer);
-  };
   
   document.getElementById("addWord").addEventListener("pointerdown", async () => {
     await askEngine({reset: true});
@@ -334,13 +347,8 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       const [letter,neighbors,nrow,td] = path.shift();
       td.classList.remove("selected");
       td.parentElement.classList.remove("selected");
-      if (td.classList.contains("uncollected")) {
+      if (td.classList.contains("uncollected"))
         bonusInPath.push({letter: letter, id: td.id});
-        skips += 1;
-        const skipNode = document.getElementById("skip");
-        skipNode.innerText = `Passer le niveau (${Math.max(0, skips)})`;
-        skipNode.classList.remove("disabled");
-      }
       word += letter;
       nRowLastCell = nrow;
     }
@@ -359,10 +367,14 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       score += levelsGained;
       startTime += 1000 * levelsGained;
       startTime += 1000 * Math.max(0, word.length-3);
+      const skipNode = document.getElementById("skip");
       while (bonusInPath.length) {
         startTime += 2000 * (bonusLettersCollected.length+1);
         if (bonusLettersCollected.length==4)
           startTime += 10000;
+        skips += 1;
+        skipNode.innerText = `Passer le niveau (${Math.max(0, skips)})`;
+        skipNode.classList.remove("disabled");
         const collected = bonusInPath.shift();
         const td = document.getElementById(collected.id);
         td.classList.remove("uncollected");

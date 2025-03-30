@@ -13,8 +13,8 @@ function sfc32(a, b, c, d) {
     return (t >>> 0) / 4294967296;
   }
 }
-const d = new Date();
-let random = sfc32(d.getFullYear(), d.getMonth(), d.getDate(), 1);
+const TODAY = new Date();
+let random = ()=>null; // see init
 
 // We'll assign UUIDs to rows and cells
 function uuid() {
@@ -72,13 +72,11 @@ const delta = {
   bottomRight: -1
 };
 
+let grid; // see init
 let wordId = 0;
 const fiveLetterWords = Object.keys(DICTIONARY["5"]);
-let bonusRnd = random();
-while (bonusRnd * fiveLetterWords.length < 0.1)
-  bonusRnd = random();
-const bonusWord = fiveLetterWords[Math.floor(random()*fiveLetterWords.length)];
-const bonusLetters = bonusWord.split("").map(l=>Object({letter: l, id: null, nrow: null}));
+let bonusWord = ""; // see init
+let bonusLetters = []; // see init
 
 class Cell {
   constructor(letter="") {
@@ -322,18 +320,24 @@ class Grid {
   }
 }
 
-let grid = new Grid();
+function init(when=TODAY) {
+  random = sfc32(when.getFullYear(), when.getMonth(), when.getDate(), 1);
+  wordId = 0;
+  let bonusRnd = random();
+  while (bonusRnd * fiveLetterWords.length < 0.1)
+    bonusRnd = random();
+  bonusWord = fiveLetterWords[Math.floor(bonusRnd*fiveLetterWords.length)];
+  bonusLetters = bonusWord.split("").map(l=>Object({letter: l, id: null, nrow: null}));
+  grid = new Grid();
+}
+init();
 
 onmessage = async (event) => {
   if ("data" in event && event.data instanceof Object) {
     const {data} = event;
     const payload = {msgId: data.msgId};
-    if ("reset" in data) {
-      random = sfc32(d.getFullYear(), d.getMonth(), d.getDate(), 1);
-      wordId = 0;
-      bonusLetters.forEach(l=>l.id = null);
-      grid = new Grid();
-    }
+    if ("reset" in data)
+      init(isNaN(Date.parse(data.reset)) ? TODAY : new Date(data.reset));
     else if ("getBonusLetters" in data)
       payload.bonusLetters = bonusLetters;
     else if ("extend" in data) {
