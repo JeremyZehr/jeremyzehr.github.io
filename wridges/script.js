@@ -184,7 +184,8 @@ function drawRows(rows=[], nBottomRow=0) {
         var {x,y,width,height} = td.getBoundingClientRect();
         const touchPadding = 15;
         const x2 = x+touchPadding, y2 = y+touchPadding;
-        if (cx < x2 || cx > x2+width || cy < y2 || cy > y2+height) continue;
+        const x2w = x+width-touchPadding, y2h = y+height-touchPadding;
+        if (cx < x2 || cx > x2w || cy < y2 || cy > y2h) continue;
         return td.dispatchEvent(new Event("pointerenter"));
       }
     }
@@ -319,7 +320,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   worker.onerror = e=>console.log("error", e);
   worker.onmessage = (event) => workerCallbacks.forEach(f=>f instanceof Function && f.call(worker, event.data));
   
-  document.getElementById("addWord").addEventListener("pointerdown", async () => {
+  document.getElementById("resetGrid").addEventListener("pointerdown", async () => {
     await askEngine({reset: true});
     start();
   });

@@ -28,7 +28,7 @@ body {
   width: 100%;
   height: 0.5em;
 }
-#addWord {
+#resetGrid {
   position: absolute;
   right: 1em;
   top: 1em;
@@ -44,11 +44,11 @@ body {
   box-shadow: 2px 2px 2px lightgray;
   z-index: 9999999;
 }
-#addWord:hover {
+#resetGrid:hover {
   cursor: pointer;
   box-shadow: 2px 2px 2px gray;
 }
-#addWord:active {
+#resetGrid:active {
   box-shadow: 2px 2px 2px black;
 }
 #bottomBar {
