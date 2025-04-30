@@ -151,7 +151,7 @@ function drawRows(rows=[], nBottomRow=0) {
         td.classList.add("selected");
         path.push(info);
       });
-      customEvent(td, "pointerenter", ()=>{
+      customEvent(td, "hasentered", ()=>{
         if (path.length==0) return;
         const pIdx = path.indexOf(info);
         if (pIdx > -1) {
@@ -174,19 +174,20 @@ function drawRows(rows=[], nBottomRow=0) {
   }
   // Add a touchmove event on the whole table for mobile devices,
   // which won't trigger pointerenter otherwise
-  customEvent(table, "touchmove", e=>{
-    const cx = e.targetTouches[0].clientX, cy = e.targetTouches[0].clientY;
+  customEvent(table, "touchmove", "pointermove", e=>{
+    const coordEvent = e.type == "touchmove" ? e.targetTouches[0] : e;
+    const cx = coordEvent.clientX, cy = coordEvent.clientY;
     const trs = [...table.children].reverse();
     for (let tr of trs) {
       var {x,y,width,height} = tr.getBoundingClientRect();
       if (cx < x || cx > x+width || cy < y || cy > y+height) continue;
       for (let td of tr.children) {
         var {x,y,width,height} = td.getBoundingClientRect();
-        const touchPadding = 15;
-        const x2 = x+touchPadding, y2 = y+touchPadding;
-        const x2w = x+width-touchPadding, y2h = y+height-touchPadding;
-        if (cx < x2 || cx > x2w || cy < y2 || cy > y2h) continue;
-        return td.dispatchEvent(new Event("pointerenter"));
+        const touchPadding = width / 5;
+        const xFrom = x+touchPadding, yFrom = y+touchPadding;
+        const xTo = x+width-touchPadding, yTo = y+height-touchPadding;
+        if (cx < xFrom || cx > xTo || cy < yFrom || cy > yTo) continue;
+        return td.dispatchEvent(new Event("hasentered"));
       }
     }
   });
@@ -245,6 +246,7 @@ const updateDisplay = () => {
 const TTL = 60000;
 let startTime = undefined;
 const updateTimer = timestamp => {
+  if (document.getElementById("grid").classList.contains("disabled")) return;
   if (startTime === undefined) startTime = timestamp;
   const difference = TTL - (timestamp - startTime);
   document.getElementById("timer").innerText = msToDisplay(Math.max(0, difference));
@@ -322,6 +324,15 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   
   document.getElementById("resetGrid").addEventListener("pointerdown", async () => {
     await askEngine({reset: true});
+    start();
+  });
+  document.getElementById("menu").addEventListener("pointerdown", async () => {
+    await gameover(score);
+  });
+  document.getElementById("gotoplaydate").addEventListener("pointerdown", async () => {
+    const playdate = document.getElementById("playdate").value;
+    if (!playdate) return;
+    await askEngine({reset: playdate});
     start();
   });
 

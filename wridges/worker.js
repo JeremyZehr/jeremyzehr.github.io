@@ -53,6 +53,9 @@ const FILLERS = [
 
 const LENGTHS = Object.keys(DICTIONARY);
 
+// Distribution of letters in French
+const LETTERS = ["e","e","e","e","e","e","e","e","e","e","e","e","a","a","a","a","a","a","a","i","i","i","i","i","i","i","s","s","s","s","s","s","s","n","n","n","n","n","n","r","r","r","r","r","r","t","t","t","t","t","t","o","o","o","o","o","l","l","l","l","l","u","u","u","u","d","d","d","d","c","c","c","m","m","m","p","p","g","b","v","h","f","q", "j","k","w","x","y","z"];
+
 const drawRandomWord = (maxLength=-1) => {
   const lengths = [3,4,5,6/*,7,8*/];
   while (maxLength > 2 && lengths.at(-1) > maxLength)
@@ -194,7 +197,9 @@ class Grid {
       cellInNewGrid._wordId = wordId;
       for (let c of newGrid._rows[initialRowIndex]._cells) {
         if (c._letter) continue;
-        c._letter = String.fromCharCode(65+Math.floor(random()*26)).toLocaleLowerCase();
+        const lIndex = Math.floor(random()*LETTERS.length);
+        c._letter = LETTERS[lIndex];
+        // c._letter = String.fromCharCode(65+Math.floor(random()*26)).toLocaleLowerCase();
       }
       // Continuations will make sure that each added letter allows a 3-letter word on its row
       if (!(continuations instanceof Array)) 

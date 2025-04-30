@@ -28,9 +28,8 @@ body {
   width: 100%;
   height: 0.5em;
 }
-#resetGrid {
+#menu, #resetGrid {
   position: absolute;
-  right: 1em;
   top: 1em;
   width: 1.5em;
   height: 1.5em;
@@ -43,6 +42,12 @@ body {
   border: none;
   box-shadow: 2px 2px 2px lightgray;
   z-index: 9999999;
+}
+#menu {
+  left: 1em;
+}
+#resetGrid {
+  right: 1em;
 }
 #resetGrid:hover {
   cursor: pointer;
