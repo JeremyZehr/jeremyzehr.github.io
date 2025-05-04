@@ -13,7 +13,6 @@ function sfc32(a, b, c, d) {
     return (t >>> 0) / 4294967296;
   }
 }
-const TODAY = new Date();
 let random = ()=>null; // see init
 
 // We'll assign UUIDs to rows and cells
@@ -325,7 +324,9 @@ class Grid {
   }
 }
 
-function init(when=TODAY) {
+function init(when=undefined) {
+  if (when === undefined)
+    when = new Date();
   random = sfc32(when.getFullYear(), when.getMonth(), when.getDate(), 1);
   wordId = 0;
   let bonusRnd = random();
@@ -342,7 +343,7 @@ onmessage = async (event) => {
     const {data} = event;
     const payload = {msgId: data.msgId};
     if ("reset" in data)
-      init(isNaN(Date.parse(data.reset)) ? TODAY : new Date(data.reset));
+      init(isNaN(Date.parse(data.reset)) ? new Date() : new Date(data.reset));
     else if ("getBonusLetters" in data)
       payload.bonusLetters = bonusLetters;
     else if ("extend" in data) {

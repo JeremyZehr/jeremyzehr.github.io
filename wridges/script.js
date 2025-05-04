@@ -46,11 +46,12 @@ async function registerWorker() {
 }
 registerWorker();
 
-const TODAY = (()=>{
+const getToday = ()=>{
   const d = new Date();
   return [d.getFullYear(), d.getMonth()+1, d.getDate()].map(n=>n < 10 ? "0"+n : n).join("");
-})();
-let allBonusLetters = [], allScores = [], topScoreToday;
+};
+let currentDay = getToday();
+let allBonusLetters = [], allScores = [], topScoreCurrentDay;
 let bonusLettersCollected = [], score = 0, skips = 1;
 let path = [], wentUp = false, activeRow;
 let askEngine = async (data) => null;
@@ -66,11 +67,10 @@ async function gameover(score) {
     else
       span.innerText = "*";
   }
-  if (topScoreToday === undefined)
-    await setDB(TODAY, score);
-  else if (score > topScoreToday)
-    await updateDB(TODAY, score);
-  topScoreToday = Math.max(score, topScoreToday || 0);
+  if (topScoreCurrentDay === undefined || topScoreCurrentDay === 0)
+    await setDB(currentDay, score);
+  else if (score > topScoreCurrentDay)
+    await updateDB(currentDay, score);
   allScores = await getAllDB();
   const allScoresNode = gameoverNode.querySelector("[name='allScores']");
   allScoresNode.replaceChildren();
@@ -83,7 +83,7 @@ async function gameover(score) {
     tryThatDay.value = "↺";
     tryThatDay.addEventListener("pointerdown", async () => {
       await askEngine({reset: dateTxt});
-      start();
+      start(dateTxt.replace(/-/g,''));
     });
     record.append(tryThatDay);
     allScoresNode.prepend(record);
@@ -120,7 +120,7 @@ function drawRows(rows=[], nBottomRow=0) {
     idx.innerText = nrow;
     tr.append(idx);
     tr.classList.add("row");
-    if (topScoreToday && nrow+nBottomRow == topScoreToday)
+    if (topScoreCurrentDay && nrow+nBottomRow == topScoreCurrentDay)
       tr.classList.add("topScore");
     tr.id = id;
     tr.setAttribute("nrow", nrow);
@@ -260,7 +260,11 @@ const updateTimer = timestamp => {
   window.requestAnimationFrame(updateTimer);
 }
 
-const start = async ()=>{
+const start = async (when=getToday())=>{
+  currentDay = when;
+  allScores = await getAllDB();
+  const record = allScores.find(s=>s.day === currentDay);
+  topScoreCurrentDay = (record || {}).score || 0;
   activeRow = undefined;
   startTime = undefined;
   score = 0;
@@ -333,7 +337,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     const playdate = document.getElementById("playdate").value;
     if (!playdate) return;
     await askEngine({reset: playdate});
-    start();
+    start(playdate.replace(/-/g, ''));
   });
 
   document.getElementById("skip").addEventListener("pointerdown", async (e) => {
@@ -399,10 +403,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   });
 
   await initDB();
-  allScores = await getAllDB();
-  const record = allScores.find(s=>s.day === TODAY);
-  if (record)
-    topScoreToday = record.score;
   const dataBonusLetters = await askEngine({getBonusLetters: true});
   allBonusLetters = dataBonusLetters.bonusLetters;
   start();
